@@ -45,8 +45,9 @@ body{background:var(--bg-0);color:var(--text);font-family:'Inter',sans-serif;min
 .tpl-g{display:grid;grid-template-columns:repeat(2, 1fr);gap:10px}
 .tpl-i{aspect-ratio:1;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);cursor:pointer;position:relative;overflow:hidden}
 .tpl-i.on{border-color:var(--accent)}
-.tpl-i img{width:100%;height:100%;object-fit:cover;opacity:0.4}
-.tpl-n{position:absolute;bottom:5px;left:5px;font-size:10px;background:rgba(0,0,0,0.8);padding:2px 6px;border-radius:4px}
+.tpl-i img{width:100%;height:100%;object-fit:cover;opacity:0.6;transition:opacity 0.3s}
+.tpl-i:hover img{opacity:1}
+.tpl-n{position:absolute;bottom:0;left:0;right:0;font-size:10px;background:rgba(0,0,0,0.8);padding:5px;text-align:center;font-weight:700}
 
 /* FOOTER PLAYER */
 .footer{position:fixed;bottom:0;left:0;right:0;background:var(--bg-1);border-top:2px solid var(--accent);padding:15px;z-index:1000}
@@ -110,6 +111,14 @@ body{background:var(--bg-0);color:var(--text);font-family:'Inter',sans-serif;min
       <label>Text-Position (Höhe)</label>
       <input type="range" class="slider" id="t-pos" min="0" max="1280" value="800" oninput="uS()">
     </div>
+    <div class="slide-box">
+      <label>BPM (Beat-Sync)</label>
+      <input type="range" class="slider" id="bpm-in" min="60" max="200" value="128" oninput="S.bpm=this.value">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px">
+        <div><label style="font-size:10px;color:var(--accent)">TEXT</label><input type="color" id="c-text" value="#ffffff" oninput="S.tColor=this.value" style="width:100%;height:30px;border:none;background:none"></div>
+        <div><label style="font-size:10px;color:var(--accent)">GLOW</label><input type="color" id="c-glow" value="#c9960c" oninput="S.tGlow=this.value" style="width:100%;height:30px;border:none;background:none"></div>
+    </div>
   </div>
 
   <div class="section">
@@ -119,7 +128,8 @@ body{background:var(--bg-0);color:var(--text);font-family:'Inter',sans-serif;min
       <div class="tpl-i" onclick="sT('liquid')" data-t="liquid"><img src="abstract_waves.png"><div class="tpl-n">Liquid Chrome</div></div>
       <div class="tpl-i" onclick="sT('glitch')" data-t="glitch"><img src="bg9-neon-berg.jpg"><div class="tpl-n">Glitch Pro</div></div>
       <div class="tpl-i" onclick="sT('neon')" data-t="neon"><img src="burning_music_note.png"><div class="tpl-n">Neon Pulse</div></div>
-      <div class="tpl-i" onclick="sT('vinyl')" data-t="vinyl"><img src="abstract_waves.png"><div class="tpl-n">Vinyl 3D</div></div>
+      <div class="tpl-i" onclick="sT('ethereal')" data-t="ethereal"><img src="forest_mist.png"><div class="tpl-n">Ethereal</div></div>
+      <div class="tpl-i" onclick="sT('retro')" data-t="retro"><img src="tattoo_woman_headphones.png"><div class="tpl-n">Retro VHS</div></div>
     </div>
   </div>
 
@@ -152,7 +162,7 @@ body{background:var(--bg-0);color:var(--text);font-family:'Inter',sans-serif;min
 <script>
 const IMGS = ['tattoo_woman_headphones.png','white_wolf_turquoise_eyes.png','burning_music_note.png','bg0-wolf.jpg','bg1-feuer-frau.jpg','bg2-schritte.jpg','bg3-rosen-regen.jpg','bg4-herz-wasser.jpg','bg5-herz-feuer.jpg','bg6-stadt-liebe.png','bg7-lila-feld.jpg','bg8-lila-strand.jpg','bg9-neon-berg.jpg','bg10-wald-berg.jpg','bg11-welle-sunset.jpg','neon_city.png','forest_mist.png','cinematic_mountains.png','abstract_waves.png'];
 const FMTS = {'916':{w:720,h:1280},'11':{w:1080,h:1080},'cv':{w:720,h:1280}};
-const S = {tpl:'viral_v',fmt:'916',bg:null,vid:null,lines:[],isCV:false,sIdx:0,tSize:70,tPos:800,tX:360,particles:[],isDragging:false,lastLine:null};
+const S = {tpl:'viral_v',fmt:'916',bg:null,vid:null,lines:[],isCV:false,sIdx:0,tSize:70,tPos:800,tX:360,particles:[],isDragging:false,lastLine:null,bpm:128,tColor:'#ffffff',tGlow:'#c9960c'};
 const cv = document.getElementById('main-cv'), ctx = cv.getContext('2d'), au = document.getElementById('player'), bv = document.getElementById('bg-vid');
 let audioCtx, audioSrc, audioDest;
 
@@ -281,12 +291,14 @@ function loop(){ draw(ctx,cv.width,cv.height,au.currentTime||bv.currentTime||0);
 
 function draw(c,W,H,t){
   c.clearRect(0,0,W,H);
+  const beat = (t * S.bpm / 60) % 1;
+  const pulse = 1 + Math.sin(beat * Math.PI) * 0.02;
 
   const active=S.lines.find((l,i)=>t>=l.time&&(!S.lines[i+1]||t<S.lines[i+1].time));
-  let zoom = 1;
+  let zoom = pulse;
   if(S.tpl==='viral_v' && active && active !== S.lastLine){
-    zoom = 1.05; S.lastLine = active;
-  } else { zoom = 1; }
+    zoom *= 1.05; S.lastLine = active;
+  }
 
   c.save();
   if(S.vid && bv.videoWidth > 0){
@@ -305,6 +317,15 @@ function draw(c,W,H,t){
     const grad = c.createRadialGradient(W*Math.sin(t*0.5), H*Math.cos(t*0.5), 0, W/2, H/2, W);
     grad.addColorStop(0, 'rgba(201,150,12,0.1)'); grad.addColorStop(1, 'transparent');
     c.fillStyle = grad; c.fillRect(0,0,W,H);
+  } else if(S.tpl==='retro'){
+    c.fillStyle = 'rgba(255,255,255,0.03)';
+    for(let i=0; i<H; i+=4) c.fillRect(0, i, W, 1);
+    c.font = '20px monospace'; c.fillStyle = '#fff'; c.textAlign = 'left';
+    c.fillText('PLAY 00:'+Math.floor(t).toString().padStart(2,'0'), 30, 50);
+  } else if(S.tpl==='ethereal'){
+    const grad = c.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
+    grad.addColorStop(0, 'transparent'); grad.addColorStop(1, 'rgba(255,255,255,0.2)');
+    c.fillStyle = grad; c.fillRect(0,0,W,H);
   }
 
   // PARTICLES
@@ -312,44 +333,63 @@ function draw(c,W,H,t){
     S.particles.forEach(p=>{
       p.y -= p.v; if(p.y<0) p.y=H;
       c.fillStyle = `hsla(${p.c + t*20}, 70%, 60%, ${p.o * 0.4})`;
-      c.beginPath(); c.arc(p.x, p.y, p.s, 0, Math.PI*2); c.fill();
+      c.beginPath(); c.arc(p.x, p.y, p.s * pulse, 0, Math.PI*2); c.fill();
     });
   }
 
   const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,0.2)');g.addColorStop(1,'rgba(0,0,0,0.8)');c.fillStyle=g;c.fillRect(0,0,W,H);
 
   if(active){
+    const elapsed = t - active.time;
+    const entryIn = Math.min(1, elapsed / 0.2);
+    const textScale = 0.9 + 0.1 * entryIn;
+
     c.textAlign='center';
     const lines = wrapText(c, active.text, W - 100, S.tSize);
     const startY = parseInt(S.tPos);
     const startX = parseInt(S.tX);
 
+    c.save();
+    c.translate(startX, startY);
+    c.scale(textScale, textScale);
+    c.globalAlpha = entryIn;
+
     lines.forEach((line, i) => {
-      const y = startY + i*(S.tSize*1.2);
+      const y = i*(S.tSize*1.2);
       if(S.tpl==='viral_v'){
         c.font = `900 ${S.tSize}px Montserrat`;
-        c.fillStyle = '#fff'; c.shadowColor = '#c9960c'; c.shadowBlur = 40;
-        c.fillText(line.toUpperCase(), startX, y);
+        c.fillStyle = S.tColor; c.shadowColor = S.tGlow; c.shadowBlur = 40;
+        c.fillText(line.toUpperCase(), 0, y);
       } else if(S.tpl==='liquid'){
         const grad = c.createLinearGradient(0, y-50, 0, y+20);
         grad.addColorStop(0, '#fff'); grad.addColorStop(0.5, '#aaa'); grad.addColorStop(1, '#fff');
         c.fillStyle = grad; c.font = `900 ${S.tSize}px Righteous`;
         c.shadowColor = 'rgba(255,255,255,0.5)'; c.shadowBlur = 15;
-        c.fillText(line, startX, y);
+        c.fillText(line, 0, y);
       } else if(S.tpl==='glitch'){
         c.font = `900 ${S.tSize}px Montserrat`;
-        c.fillStyle = '#0ff'; c.fillText(line.toUpperCase(), startX+Math.random()*5, y);
-        c.fillStyle = '#f0f'; c.fillText(line.toUpperCase(), startX-Math.random()*5, y);
-        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), startX, y);
+        c.fillStyle = '#0ff'; c.fillText(line.toUpperCase(), Math.random()*5, y);
+        c.fillStyle = '#f0f'; c.fillText(line.toUpperCase(), -Math.random()*5, y);
+        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), 0, y);
       } else if(S.tpl==='neon'){
         c.font = `900 ${S.tSize}px Montserrat`;
         c.shadowColor = `hsl(${t*50}, 100%, 50%)`; c.shadowBlur = 30;
-        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), startX, y);
+        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), 0, y);
+      } else if(S.tpl==='ethereal'){
+        c.font = `italic 700 ${S.tSize}px Cinzel`;
+        c.shadowColor = 'rgba(255,255,255,0.8)'; c.shadowBlur = 20;
+        c.fillStyle = S.tColor; c.fillText(line, 0, y);
+      } else if(S.tpl==='retro'){
+        c.font = `900 ${S.tSize}px monospace`;
+        c.fillStyle = '#f00'; c.fillText(line.toUpperCase(), 2, y+2);
+        c.fillStyle = '#0f0'; c.fillText(line.toUpperCase(), -2, y-2);
+        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), 0, y);
       } else {
-        c.fillStyle = '#fff'; c.font = `700 ${S.tSize}px Inter`;
-        c.fillText(line, startX, y);
+        c.fillStyle = S.tColor; c.font = `700 ${S.tSize}px Inter`;
+        c.fillText(line, 0, y);
       }
     });
+    c.restore();
     c.shadowBlur=0;
   }
 }
@@ -391,10 +431,10 @@ async function doExport(){
     stream.addTrack(audioDest.stream.getAudioTracks()[0]);
   }
 
-  const types=['video/mp4','video/webm;codecs=vp9','video/webm'];
+  const types=['video/mp4','video/webm;codecs=h264','video/webm;codecs=vp9','video/webm'];
   let mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'video/webm';
   const ext=mime.includes('mp4')?'mp4':'webm';
-  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:12000000});
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000});
   rec.ondataavailable=e=>chunks.push(e.data);
   rec.onstop=()=>{ const b=new Blob(chunks,{type:mime}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=S.isCV?`canvas.${ext}`:`video.${ext}`; a.click(); ov.style.display='none'; toast('Export fertig!'); };
   if(au.src) au.currentTime=0; if(bv.src) bv.currentTime=0;
