@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>UNÜBERHÖRBAR VIRAL V12.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;700;900&family=Montserrat:wght@900&family=Righteous&family=Bungee+Inline&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--accent:#c9960c;--bg-0:#050508;--bg-1:#0e0e14;--bg-2:#161620;--border:rgba(255,255,255,.15);--text:#f0ead8}
+body{background:var(--bg-0);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;padding-bottom:140px}
+
+/* HEADER */
+.header{height:60px;background:var(--bg-1);border-bottom:2px solid var(--accent);display:flex;align-items:center;padding:0 15px;justify-content:space-between;position:sticky;top:0;z-index:1000}
+.logo{font-family:'Cinzel',serif;font-size:16px;color:var(--accent);font-weight:900}
+.btn-exp{background:var(--accent);color:#000;padding:8px 15px;border-radius:6px;font-weight:900;cursor:pointer;border:none;font-size:12px}
+
+/* PREVIEW AREA */
+.preview-box{background:#000;width:100%;display:flex;align-items:center;justify-content:center;padding:15px;box-shadow:0 10px 30px rgba(0,0,0,0.8)}
+.cv-wrap{position:relative;width:100%;max-width:280px;aspect-ratio:9/16;background:#050508;border:1px solid var(--border);overflow:hidden;cursor:move}
+#main-cv{width:100%;height:100%;display:block;object-fit:contain}
+
+/* MAIN CONTENT */
+.main{padding:15px;display:flex;flex-direction:column;gap:20px}
+.section{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:15px}
+.title{font-family:'Cinzel',serif;font-size:10px;color:var(--accent);letter-spacing:0.1em;margin-bottom:12px;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:5px}
+
+/* GALLERY */
+.gal{display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;margin-bottom:10px}
+.gal-i{aspect-ratio:1;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid transparent}
+.gal-i.on{border-color:var(--accent)}
+.gal-i img{width:100%;height:100%;object-fit:cover}
+
+/* INPUTS & BUTTONS */
+.inp{width:100%;background:var(--bg-2);border:1px solid var(--border);padding:12px;border-radius:8px;color:#fff;font-size:14px;margin-bottom:10px;outline:none}
+.btn{width:100%;background:var(--bg-2);border:1px solid var(--border);color:#fff;padding:12px;border-radius:8px;cursor:pointer;font-size:12px;margin-bottom:8px;font-weight:700;text-align:center}
+.btn.active{background:rgba(201,150,12,0.3);border-color:var(--accent);color:var(--accent)}
+
+/* SLIDERS */
+.slide-box{margin-bottom:15px}
+.slide-box label{display:block;font-size:10px;margin-bottom:5px;color:var(--accent)}
+.slider{width:100%;accent-color:var(--accent);cursor:pointer}
+
+/* TEMPLATES */
+.tpl-g{display:grid;grid-template-columns:repeat(2, 1fr);gap:10px}
+.tpl-i{aspect-ratio:1;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);cursor:pointer;position:relative;overflow:hidden}
+.tpl-i.on{border-color:var(--accent)}
+.tpl-i img{width:100%;height:100%;object-fit:cover;opacity:0.6;transition:opacity 0.3s}
+.tpl-i:hover img{opacity:1}
+.tpl-n{position:absolute;bottom:0;left:0;right:0;font-size:10px;background:rgba(0,0,0,0.8);padding:5px;text-align:center;font-weight:700}
+
+/* FOOTER PLAYER */
+.footer{position:fixed;bottom:0;left:0;right:0;background:var(--bg-1);border-top:2px solid var(--accent);padding:15px;z-index:1000}
+.track{height:12px;background:var(--bg-2);border-radius:6px;position:relative;overflow:hidden;cursor:pointer;margin-top:10px}
+.prog{position:absolute;top:0;left:0;height:100%;background:var(--accent);width:0%}
+
+#export-ov{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.95);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+#toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:10px 20px;border-radius:30px;font-size:12px;font-weight:700;z-index:3000;display:none}
+
+@media (min-width: 1000px) {
+  body { display: flex; flex-direction: row; padding-bottom: 0; }
+  .preview-box { width: 60%; height: 100vh; top: 0; position: sticky; }
+  .main { width: 40%; padding-top: 80px; }
+  .footer { position: fixed; bottom: 0; width: 40%; right: 0; left: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">UNÜBERHÖRBAR VIRAL V12.0</div>
+  <button class="btn-exp" onclick="doExport()">EXPORT</button>
+</div>
+
+<div class="preview-box">
+  <div class="cv-wrap" id="cv-wrap" onmousedown="startDrag(event)" ontouchstart="startDrag(event)">
+    <canvas id="main-cv"></canvas>
+  </div>
+</div>
+
+<div class="main">
+  <div class="section">
+    <div class="title">1. Media (Bild oder Video)</div>
+    <div class="gal" id="gal"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn" onclick="document.getElementById('bg-in').click()">BILD</button>
+      <button class="btn" onclick="document.getElementById('vid-in').click()">VIDEO</button>
+    </div>
+    <input type="file" id="bg-in" hidden accept="image/*" onchange="hBg(event)">
+    <input type="file" id="vid-in" hidden accept="video/*" onchange="hVid(event)">
+  </div>
+
+  <div class="section">
+    <div class="title">2. Audio & Lyrics</div>
+    <button class="btn" style="background:var(--accent);color:#000" onclick="document.getElementById('au-in').click()">AUDIO WÄHLEN</button>
+    <input type="file" id="au-in" hidden accept="audio/*" onchange="hAu(event)">
+    <input type="text" id="art" class="inp" placeholder="Künstler">
+    <input type="text" id="tit" class="inp" placeholder="Titel">
+    <button class="btn active" onclick="fLyr()">✨ AUTO-SYNC</button>
+    <textarea id="lyr" class="inp" style="height:100px" placeholder="Lyrics..."></textarea>
+    <div class="btn" style="background:var(--accent);color:#000" onclick="sL()">TAP TO SYNC</div>
+  </div>
+
+  <div class="section">
+    <div class="title">3. Viral-VFX & Text</div>
+    <div class="slide-box">
+      <label>Text-Größe</label>
+      <input type="range" class="slider" id="t-size" min="20" max="150" value="70" oninput="uS()">
+    </div>
+    <div class="slide-box">
+      <label>Text-Position (Höhe)</label>
+      <input type="range" class="slider" id="t-pos" min="0" max="1280" value="800" oninput="uS()">
+    </div>
+    <div class="slide-box">
+      <label>BPM (Beat-Sync)</label>
+      <input type="range" class="slider" id="bpm-in" min="60" max="200" value="128" oninput="S.bpm=this.value">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px">
+        <div><label style="font-size:10px;color:var(--accent)">TEXT</label><input type="color" id="c-text" value="#ffffff" oninput="S.tColor=this.value" style="width:100%;height:30px;border:none;background:none"></div>
+        <div><label style="font-size:10px;color:var(--accent)">GLOW</label><input type="color" id="c-glow" value="#c9960c" oninput="S.tGlow=this.value" style="width:100%;height:30px;border:none;background:none"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="title">4. Viral Vorlagen</div>
+    <div class="tpl-g">
+      <div class="tpl-i on" onclick="sT('viral_v')" data-t="viral_v"><img src="neon_city.png"><div class="tpl-n">Viral V-Style</div></div>
+      <div class="tpl-i" onclick="sT('liquid')" data-t="liquid"><img src="abstract_waves.png"><div class="tpl-n">Liquid Chrome</div></div>
+      <div class="tpl-i" onclick="sT('glitch')" data-t="glitch"><img src="bg9-neon-berg.jpg"><div class="tpl-n">Glitch Pro</div></div>
+      <div class="tpl-i" onclick="sT('neon')" data-t="neon"><img src="burning_music_note.png"><div class="tpl-n">Neon Pulse</div></div>
+      <div class="tpl-i" onclick="sT('ethereal')" data-t="ethereal"><img src="forest_mist.png"><div class="tpl-n">Ethereal</div></div>
+      <div class="tpl-i" onclick="sT('retro')" data-t="retro"><img src="tattoo_woman_headphones.png"><div class="tpl-n">Retro VHS</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="title">5. Format</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn" id="btn-916" onclick="sF('916')">9:16</button>
+      <button class="btn" id="btn-11" onclick="sF('11')">1:1</button>
+      <button class="btn" id="btn-cv" style="grid-column:span 2;color:#1DB954" onclick="sF('cv')">Spotify Canvas (8s)</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <button onclick="tP()" style="background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:8px;font-weight:900;cursor:pointer">PLAY / PAUSE</button>
+    <div id="time" style="font-family:monospace;font-weight:700">00:00 / 00:00</div>
+  </div>
+  <div class="track" onclick="sk(event)"><div class="prog" id="prog"></div></div>
+</div>
+
+<div id="export-ov">
+  <h2 style="color:var(--accent);font-family:Cinzel">Export läuft... <span id="exp-p">0%</span></h2>
+</div>
+
+<div id="toast"></div>
+<audio id="player" crossorigin="anonymous"></audio>
+<video id="bg-vid" loop muted playsinline style="display:none" crossorigin="anonymous"></video>
+
+<script>
+const IMGS = ['tattoo_woman_headphones.png','white_wolf_turquoise_eyes.png','burning_music_note.png','bg0-wolf.jpg','bg1-feuer-frau.jpg','bg2-schritte.jpg','bg3-rosen-regen.jpg','bg4-herz-wasser.jpg','bg5-herz-feuer.jpg','bg6-stadt-liebe.png','bg7-lila-feld.jpg','bg8-lila-strand.jpg','bg9-neon-berg.jpg','bg10-wald-berg.jpg','bg11-welle-sunset.jpg','neon_city.png','forest_mist.png','cinematic_mountains.png','abstract_waves.png'];
+const FMTS = {'916':{w:720,h:1280},'11':{w:1080,h:1080},'cv':{w:720,h:1280}};
+const S = {tpl:'viral_v',fmt:'916',bg:null,vid:null,lines:[],isCV:false,sIdx:0,tSize:70,tPos:800,tX:360,particles:[],isDragging:false,lastLine:null,bpm:128,tColor:'#ffffff',tGlow:'#c9960c'};
+const cv = document.getElementById('main-cv'), ctx = cv.getContext('2d'), au = document.getElementById('player'), bv = document.getElementById('bg-vid');
+let audioCtx, audioSrc, audioDest;
+
+window.onload = () => {
+  buildGal();
+  sF('916');
+  const i=new Image();
+  i.crossOrigin = "anonymous";
+  i.onload=()=>{S.bg=i;};
+  i.src=IMGS[0];
+  for(let i=0;i<60;i++) S.particles.push({x:Math.random()*720,y:Math.random()*1280,s:Math.random()*6+2,v:Math.random()*3+1,c:Math.random()*360,o:Math.random()});
+  requestAnimationFrame(loop);
+};
+
+function buildGal(){
+  const g=document.getElementById('gal');
+  g.innerHTML='';
+  IMGS.forEach((s, idx)=>{
+    const d=document.createElement('div');
+    d.className='gal-i' + (idx===0?' on':'');
+    d.innerHTML=`<img src="${s}" onclick="pG('${s}',this)">`;
+    g.appendChild(d);
+  });
+}
+
+function pG(s,el){
+  document.querySelectorAll('.gal-i').forEach(i=>i.classList.remove('on'));
+  el.parentElement.classList.add('on');
+  S.vid=null; bv.pause();
+  const i=new Image();
+  i.crossOrigin = "anonymous";
+  i.onload=()=>{S.bg=i;};
+  i.src=s;
+  toast('Bild gewählt');
+}
+
+function sF(f){
+  S.fmt=f; S.isCV=(f==='cv');
+  cv.width=FMTS[f].w; cv.height=FMTS[f].h;
+  document.getElementById('cv-wrap').style.aspectRatio = (f==='11') ? '1/1' : '9/16';
+  document.querySelectorAll('[id^="btn-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`btn-${f}`).classList.add('active');
+}
+
+function sT(t){ S.tpl=t; document.querySelectorAll('.tpl-i').forEach(c=>c.classList.remove('on')); document.querySelector(`[data-t="${t}"]`).classList.add('on'); }
+function uS(){ S.tSize = document.getElementById('t-size').value; S.tPos = document.getElementById('t-pos').value; }
+
+function startDrag(e){
+  S.isDragging = true;
+  const move = (ev) => {
+    if(!S.isDragging) return;
+    const rect = cv.getBoundingClientRect();
+    const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    S.tX = ((clientX - rect.left) / rect.width) * cv.width;
+    S.tPos = ((clientY - rect.top) / rect.height) * cv.height;
+    document.getElementById('t-pos').value = S.tPos;
+  };
+  const end = () => { S.isDragging = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', end); window.removeEventListener('touchmove', move); window.removeEventListener('touchend', end); };
+  window.addEventListener('mousemove', move); window.addEventListener('mouseup', end); window.addEventListener('touchmove', move); window.addEventListener('touchend', end);
+}
+
+function hBg(e){
+  const f=e.target.files[0]; S.vid=null; bv.pause();
+  const r=new FileReader(); r.onload=ev=>{const i=new Image(); i.onload=()=>{S.bg=i;}; i.src=ev.target.result;}; r.readAsDataURL(f);
+}
+
+function hVid(e){
+  const f=e.target.files[0]; S.bg=null;
+  bv.src=URL.createObjectURL(f);
+  bv.onloadedmetadata = () => {
+    bv.play(); S.vid=bv; toast('Video geladen');
+  };
+}
+
+function hAu(e){
+  const f=e.target.files[0]; au.src=URL.createObjectURL(f); toast('Audio geladen');
+}
+
+function sL(){
+  const t=document.getElementById('lyr').value.split('\n').filter(l=>l.trim());
+  if(S.sIdx<t.length){
+    S.lines.push({time:au.currentTime||bv.currentTime,text:t[S.sIdx]});
+    S.sIdx++; toast(`Zeile ${S.sIdx} ok`);
+  }
+}
+
+async function fLyr(){
+  const a=document.getElementById('art').value, t=document.getElementById('tit').value;
+  if(!a||!t) return toast('Künstler & Titel?');
+  try{
+    const r=await fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(a)}&track_name=${encodeURIComponent(t)}`);
+    const d=await r.json();
+    if(d&&d.syncedLyrics){
+      const l=d.syncedLyrics.split('\n').filter(x=>x.includes(']'));
+      S.lines=l.map(x=>{
+        const m=x.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+        return m?{time:parseInt(m[1])*60+parseFloat(m[2]),text:m[3].trim()}:null;
+      }).filter(x=>x);
+      toast('Auto-Sync ok! ✨');
+    }
+  } catch(e){toast('Fehler');}
+}
+
+function tP(){
+  if(au.src){ if(au.paused)au.play();else au.pause(); }
+  if(bv.src){ if(bv.paused)bv.play();else bv.pause(); }
+}
+
+function sk(e){
+  const r=e.currentTarget.getBoundingClientRect();
+  const t = ((e.clientX-r.left)/r.width)*(au.duration||bv.duration||30);
+  if(au.src) au.currentTime=t; if(bv.src) bv.currentTime=t;
+}
+
+function updateTime(){
+  const t = au.currentTime || bv.currentTime || 0;
+  const d = au.duration || bv.duration || 30;
+  if(S.isCV&&t>=8){ if(au.src)au.currentTime=0; if(bv.src)bv.currentTime=0; }
+  document.getElementById('prog').style.width=(t/d*100)+'%';
+  document.getElementById('time').textContent=`${fT(t)} / ${fT(d)}`;
+}
+au.ontimeupdate=updateTime; bv.ontimeupdate=updateTime;
+
+function loop(){ draw(ctx,cv.width,cv.height,au.currentTime||bv.currentTime||0); requestAnimationFrame(loop); }
+
+function draw(c,W,H,t){
+  c.clearRect(0,0,W,H);
+  const beat = (t * S.bpm / 60) % 1;
+  const pulse = 1 + Math.sin(beat * Math.PI) * 0.02;
+
+  const active=S.lines.find((l,i)=>t>=l.time&&(!S.lines[i+1]||t<S.lines[i+1].time));
+  let zoom = pulse;
+  if(S.tpl==='viral_v' && active && active !== S.lastLine){
+    zoom *= 1.05; S.lastLine = active;
+  }
+
+  c.save();
+  if(S.vid && bv.videoWidth > 0){
+    const sc=Math.max(W/bv.videoWidth,H/bv.videoHeight)*zoom,sw=bv.videoWidth*sc,sh=bv.videoHeight*sc;
+    c.drawImage(bv,(W-sw)/2,(H-sh)/2,sw,sh);
+  } else if(S.bg){
+    const sc=Math.max(W/S.bg.width,H/S.bg.height)*zoom,sw=S.bg.width*sc,sh=S.bg.height*sc;
+    if(S.tpl==='ethereal'){c.filter='sepia(20%) blur(1px)';}
+    if(S.tpl==='cyber'){c.filter='grayscale(40%) contrast(1.2)';}
+    c.drawImage(S.bg,(W-sw)/2,(H-sh)/2,sw,sh);
+  } else { c.fillStyle='#050508';c.fillRect(0,0,W,H); }
+  c.restore();
+
+  // LIGHT LEAKS
+  if(S.tpl==='viral_v'){
+    const grad = c.createRadialGradient(W*Math.sin(t*0.5), H*Math.cos(t*0.5), 0, W/2, H/2, W);
+    grad.addColorStop(0, 'rgba(201,150,12,0.1)'); grad.addColorStop(1, 'transparent');
+    c.fillStyle = grad; c.fillRect(0,0,W,H);
+  } else if(S.tpl==='retro'){
+    c.fillStyle = 'rgba(255,255,255,0.03)';
+    for(let i=0; i<H; i+=4) c.fillRect(0, i, W, 1);
+    c.font = '20px monospace'; c.fillStyle = '#fff'; c.textAlign = 'left';
+    c.fillText('PLAY 00:'+Math.floor(t).toString().padStart(2,'0'), 30, 50);
+  } else if(S.tpl==='ethereal'){
+    const grad = c.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
+    grad.addColorStop(0, 'transparent'); grad.addColorStop(1, 'rgba(255,255,255,0.2)');
+    c.fillStyle = grad; c.fillRect(0,0,W,H);
+  }
+
+  // PARTICLES
+  if(S.tpl==='viral_v' || S.tpl==='liquid' || S.tpl==='neon'){
+    S.particles.forEach(p=>{
+      p.y -= p.v; if(p.y<0) p.y=H;
+      c.fillStyle = `hsla(${p.c + t*20}, 70%, 60%, ${p.o * 0.4})`;
+      c.beginPath(); c.arc(p.x, p.y, p.s * pulse, 0, Math.PI*2); c.fill();
+    });
+  }
+
+  const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,0.2)');g.addColorStop(1,'rgba(0,0,0,0.8)');c.fillStyle=g;c.fillRect(0,0,W,H);
+
+  if(active){
+    const elapsed = t - active.time;
+    const entryIn = Math.min(1, elapsed / 0.2);
+    const textScale = 0.9 + 0.1 * entryIn;
+
+    c.textAlign='center';
+    const lines = wrapText(c, active.text, W - 100, S.tSize);
+    const startY = parseInt(S.tPos);
+    const startX = parseInt(S.tX);
+
+    c.save();
+    c.translate(startX, startY);
+    c.scale(textScale, textScale);
+    c.globalAlpha = entryIn;
+
+    lines.forEach((line, i) => {
+      const y = i*(S.tSize*1.2);
+      if(S.tpl==='viral_v'){
+        c.font = `900 ${S.tSize}px Montserrat`;
+        c.fillStyle = S.tColor; c.shadowColor = S.tGlow; c.shadowBlur = 40;
+        c.fillText(line.toUpperCase(), 0, y);
+      } else if(S.tpl==='liquid'){
+        const grad = c.createLinearGradient(0, y-50, 0, y+20);
+        grad.addColorStop(0, '#fff'); grad.addColorStop(0.5, '#aaa'); grad.addColorStop(1, '#fff');
+        c.fillStyle = grad; c.font = `900 ${S.tSize}px Righteous`;
+        c.shadowColor = 'rgba(255,255,255,0.5)'; c.shadowBlur = 15;
+        c.fillText(line, 0, y);
+      } else if(S.tpl==='glitch'){
+        c.font = `900 ${S.tSize}px Montserrat`;
+        c.fillStyle = '#0ff'; c.fillText(line.toUpperCase(), Math.random()*5, y);
+        c.fillStyle = '#f0f'; c.fillText(line.toUpperCase(), -Math.random()*5, y);
+        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), 0, y);
+      } else if(S.tpl==='neon'){
+        c.font = `900 ${S.tSize}px Montserrat`;
+        c.shadowColor = `hsl(${t*50}, 100%, 50%)`; c.shadowBlur = 30;
+        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), 0, y);
+      } else if(S.tpl==='ethereal'){
+        c.font = `italic 700 ${S.tSize}px Cinzel`;
+        c.shadowColor = 'rgba(255,255,255,0.8)'; c.shadowBlur = 20;
+        c.fillStyle = S.tColor; c.fillText(line, 0, y);
+      } else if(S.tpl==='retro'){
+        c.font = `900 ${S.tSize}px monospace`;
+        c.fillStyle = '#f00'; c.fillText(line.toUpperCase(), 2, y+2);
+        c.fillStyle = '#0f0'; c.fillText(line.toUpperCase(), -2, y-2);
+        c.fillStyle = '#fff'; c.fillText(line.toUpperCase(), 0, y);
+      } else {
+        c.fillStyle = S.tColor; c.font = `700 ${S.tSize}px Inter`;
+        c.fillText(line, 0, y);
+      }
+    });
+    c.restore();
+    c.shadowBlur=0;
+  }
+}
+
+function wrapText(ctx, text, maxWidth, fontSize) {
+  if (!text) return [];
+  ctx.font = `${fontSize}px Inter`;
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = words[0];
+  if (words.length === 1) return [text];
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    const width = ctx.measureText(currentLine + " " + word).width;
+    if (width < maxWidth) { currentLine += " " + word; }
+    else { lines.push(currentLine); currentLine = word; }
+  }
+  lines.push(currentLine);
+  return lines;
+}
+
+function fT(s){const m=Math.floor(s/60),sec=Math.floor(s%60);return `${m}:${sec.toString().padStart(2,'0')}`;}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
+function rR(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+
+async function doExport(){
+  const ov=document.getElementById('export-ov'), p=document.getElementById('exp-p'); ov.style.display='flex';
+  const dur=S.isCV?8:(au.duration||bv.duration||30); const chunks=[]; const stream=cv.captureStream(30);
+
+  if(au.src && !S.isCV){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioDest = audioCtx.createMediaStreamDestination();
+      audioSrc = audioCtx.createMediaElementSource(au);
+      audioSrc.connect(audioDest);
+      audioSrc.connect(audioCtx.destination);
+    }
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+    stream.addTrack(audioDest.stream.getAudioTracks()[0]);
+  }
+
+  const types=['video/mp4','video/webm;codecs=h264','video/webm;codecs=vp9','video/webm'];
+  let mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'video/webm';
+  const ext=mime.includes('mp4')?'mp4':'webm';
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000});
+  rec.ondataavailable=e=>chunks.push(e.data);
+  rec.onstop=()=>{ const b=new Blob(chunks,{type:mime}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=S.isCV?`canvas.${ext}`:`video.${ext}`; a.click(); ov.style.display='none'; toast('Export fertig!'); };
+  if(au.src) au.currentTime=0; if(bv.src) bv.currentTime=0;
+  tP(); rec.start();
+  const int=setInterval(()=>{
+    const t = au.currentTime || bv.currentTime || 0;
+    p.textContent=Math.round(t/dur*100)+'%';
+    if(t>=dur){clearInterval(int);rec.stop(); if(au.src)au.pause(); if(bv.src)bv.pause();}
+  },100);
+}
+</script>
+</body>
+</html>
